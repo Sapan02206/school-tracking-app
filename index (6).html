@@ -1,0 +1,2360 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>School Tracking </title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+  />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    /* Sidebar mobile adjustments */
+    @media (max-width: 768px) {
+      nav.w-64 {
+        position: fixed;
+        top: 0;
+        left: -16rem; /* hidden */
+        height: 100vh;
+        width: 16rem;
+        z-index: 50;
+        background-color: #eef2ff; /* bg-indigo-50 */
+        border-right: 1px solid #c7d2fe; /* border-indigo-200 */
+        transition: left 0.3s ease-in-out;
+      }
+      nav.w-64.open {
+        left: 0;
+      }
+      main.flex-1 {
+        padding-left: 1rem !important;
+      }
+      #sidebar-toggle-btn {
+        display: inline-flex;
+      }
+      #student-back-btn {
+        left: 4rem !important;
+      }
+    }
+    /* Back button repositioned top-right */
+    #student-back-btn {
+      top: 1rem;
+      right: 1rem;
+      left: auto !important;
+      z-index: 60;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+  <div id="app" class="flex-1 flex flex-col">
+    <!-- Login Screen -->
+    <div id="login-screen" class="flex flex-col items-center justify-center min-h-screen bg-white px-4">
+      <div class="w-full max-w-md bg-white rounded-lg shadow-lg p-8">
+        <h1 class="text-3xl font-semibold mb-6 text-center text-indigo-700">School Tracking</h1>
+        <form id="login-form" class="space-y-6" autocomplete="off">
+          <div>
+            <label for="role" class="block text-sm font-medium text-gray-700 mb-1">Login as</label>
+            <select id="role" name="role" required class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="" disabled selected>Select role</option>
+              <option value="admin">Admin</option>
+              <option value="student">Student</option>
+            </select>
+          </div>
+          <div>
+            <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+            <input type="text" id="username" name="username" required placeholder="" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" autocomplete="username" />
+          </div>
+          <div>
+            <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <input type="password" id="password" name="password" required placeholder="" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" autocomplete="current-password" />
+          </div>
+          <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-md transition">Login</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div id="admin-dashboard" class="hidden flex flex-col min-h-screen">
+      <header class="bg-indigo-700 text-white flex items-center justify-between px-6 py-4 shadow-md relative">
+        <div class="flex items-center space-x-4">
+          <button id="sidebar-toggle-btn" class="md:hidden text-white text-2xl focus:outline-none" aria-label="Toggle sidebar">
+            <i class="fas fa-bars"></i>
+          </button>
+          <h2 class="text-xl font-semibold">School Tracking - Admin Dashboard</h2>
+        </div>
+        <div class="flex items-center space-x-4">
+          <button id="admin-profile-btn" class="flex items-center space-x-2 hover:underline focus:outline-none">
+            <i class="fas fa-user-circle text-2xl"></i>
+            <span id="admin-username" class="font-medium"></span>
+          </button>
+          <button id="admin-logout-btn" title="Logout" class="hover:text-indigo-300 focus:outline-none">
+            <i class="fas fa-sign-out-alt text-xl"></i>
+          </button>
+        </div>
+      </header>
+      <div class="flex flex-1 overflow-hidden relative">
+        <nav class="w-64 bg-indigo-50 border-r border-indigo-200 overflow-y-auto" aria-label="Admin sidebar navigation">
+          <ul class="py-6 space-y-1">
+            <li>
+              <button data-section="dashboard" class="w-full text-left px-6 py-3 flex items-center space-x-3 text-indigo-700 font-semibold hover:bg-indigo-100 focus:outline-none rounded-md">
+                <i class="fas fa-tachometer-alt fa-lg"></i>
+                <span>Dashboard</span>
+              </button>
+            </li>
+            <li>
+              <button data-section="profile" class="w-full text-left px-6 py-3 flex items-center space-x-3 text-indigo-700 font-semibold hover:bg-indigo-100 focus:outline-none rounded-md">
+                <i class="fas fa-user fa-lg"></i>
+                <span>Profile</span>
+              </button>
+            </li>
+          </ul>
+        </nav>
+        <main class="flex-1 overflow-y-auto p-6 bg-white relative">
+          <!-- Back Button -->
+          <button id="admin-back-btn" class="hidden absolute top-4 right-4 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-400 flex items-center space-x-2 z-50">
+            <i class="fas fa-arrow-left"></i><span>Back</span>
+          </button>
+
+          <!-- Dashboard Section -->
+          <section id="admin-dashboard-section" class="space-y-6">
+            <h3 class="text-2xl font-semibold text-indigo-700 mb-4">Dashboard</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              <button id="open-attendance-management" class="flex flex-col items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg p-6 shadow-md transition focus:outline-none focus:ring-4 focus:ring-indigo-400">
+                <i class="fas fa-calendar-check fa-3x mb-3"></i>
+                <span class="text-lg font-semibold">Attendance Management</span>
+              </button>
+              <button id="open-exam-schedule" class="flex flex-col items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg p-6 shadow-md transition focus:outline-none focus:ring-4 focus:ring-indigo-400">
+                <i class="fas fa-calendar-alt fa-3x mb-3"></i>
+                <span class="text-lg font-semibold">Exam Schedule</span>
+              </button>
+              <button id="open-result-management" class="flex flex-col items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg p-6 shadow-md transition focus:outline-none focus:ring-4 focus:ring-indigo-400">
+                <i class="fas fa-file-alt fa-3x mb-3"></i>
+                <span class="text-lg font-semibold">Result Management</span>
+              </button>
+              <button id="open-batches-management" class="flex flex-col items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg p-6 shadow-md transition focus:outline-none focus:ring-4 focus:ring-indigo-400">
+                <i class="fas fa-layer-group fa-3x mb-3"></i>
+                <span class="text-lg font-semibold">Batches</span>
+              </button>
+              <button id="open-add-student" class="flex flex-col items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg p-6 shadow-md transition focus:outline-none focus:ring-4 focus:ring-indigo-400">
+                <i class="fas fa-user-plus fa-3x mb-3"></i>
+                <span class="text-lg font-semibold">Add Students</span>
+              </button>
+            </div>
+          </section>
+
+          <!-- Profile Section -->
+          <section id="admin-profile-section" class="hidden max-w-3xl mx-auto bg-indigo-50 p-6 rounded-md shadow-md space-y-6">
+            <h3 class="text-2xl font-semibold text-indigo-700 flex justify-between items-center">
+              Admin Profile
+              <button id="toggle-credentials-btn" aria-expanded="true" aria-controls="student-login-credentials-container" class="text-indigo-700 hover:text-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded p-1" title="Toggle Student Login Credentials">
+                <i id="toggle-credentials-icon" class="fas fa-chevron-up"></i>
+              </button>
+            </h3>
+            <form id="admin-profile-form" class="space-y-4" autocomplete="off">
+              <div>
+                <label for="admin-name" class="block font-medium text-indigo-800 mb-1">Name</label>
+                <input type="text" id="admin-name" name="admin-name" class="w-full border border-indigo-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" autocomplete="name" />
+              </div>
+              <div>
+                <label for="admin-email" class="block font-medium text-indigo-800 mb-1">Email</label>
+                <input type="email" id="admin-email" name="admin-email" class="w-full border border-indigo-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" autocomplete="email" />
+              </div>
+              <div>
+                <label for="admin-phone" class="block font-medium text-indigo-800 mb-1">Phone</label>
+                <input type="tel" id="admin-phone" name="admin-phone" class="w-full border border-indigo-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" autocomplete="tel" />
+              </div>
+              <hr class="border-indigo-300" />
+              <div>
+                <label for="admin-username" class="block font-medium text-indigo-800 mb-1">Username</label>
+                <input type="text" id="admin-username-input" name="admin-username" class="w-full border border-indigo-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" autocomplete="username" />
+              </div>
+              <div>
+                <label for="admin-password" class="block font-medium text-indigo-800 mb-1">New Password</label>
+                <input type="password" id="admin-password-input" name="admin-password" placeholder="Leave blank to keep current password" class="w-full border border-indigo-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" autocomplete="new-password" />
+              </div>
+              <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-md transition">Update Profile</button>
+            </form>
+
+            <hr class="border-indigo-300" />
+
+            <div id="student-login-credentials-container" class="relative">
+              <h4 class="text-xl font-semibold text-indigo-700 mb-4">Manage Student Login Credentials</h4>
+              <div class="max-w-3xl overflow-x-auto border border-indigo-300 rounded-md shadow-md bg-white">
+                <table class="min-w-full" role="table" aria-label="Manage student login credentials">
+                  <thead class="bg-indigo-600 text-white sticky top-0">
+                    <tr>
+                      <th class="py-2 px-4 text-left">Student Name</th>
+                      <th class="py-2 px-4 text-left">Batch</th>
+                      <th class="py-2 px-4 text-left">Username</th>
+                      <th class="py-2 px-4 text-left">Password</th>
+                      <th class="py-2 px-4 text-center">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="student-login-credentials-list" class="divide-y divide-indigo-200"></tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- Attendance Management Section -->
+          <section id="attendance-management-section" class="hidden max-w-5xl mx-auto bg-indigo-50 p-6 rounded-md shadow-md">
+            <h3 class="text-2xl font-semibold text-indigo-700 mb-6">Attendance Management</h3>
+            <div class="flex flex-col md:flex-row md:space-x-6">
+              <div class="md:w-1/3 mb-6 md:mb-0">
+                <h4 class="font-semibold text-indigo-600 mb-2">Select Student</h4>
+                <select id="attendance-student-select" class="w-full border border-indigo-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" aria-label="Select student for attendance">
+                  <option value="" disabled selected>Select student</option>
+                </select>
+                <p id="attendance-student-phone" class="mt-2 text-indigo-700 font-semibold"></p>
+              </div>
+              <div class="md:w-1/3 mb-6 md:mb-0">
+                <h4 class="font-semibold text-indigo-600 mb-2">Select Batch</h4>
+                <select id="attendance-batch-select" class="w-full border border-indigo-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" disabled aria-label="Select batch for attendance">
+                  <option value="" disabled selected>Select batch</option>
+                </select>
+              </div>
+              <div class="md:w-1/3">
+                <h4 class="font-semibold text-indigo-600 mb-2">Mark Attendance</h4>
+                <form id="attendance-form" class="space-y-3" autocomplete="off">
+                  <div>
+                    <label for="attendance-date" class="block text-indigo-700 font-medium mb-1">Date</label>
+                    <input type="date" id="attendance-date" required class="w-full border border-indigo-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                  </div>
+                  <div>
+                    <label class="block text-indigo-700 font-medium mb-1">Status</label>
+                    <div class="flex items-center space-x-4">
+                      <label class="inline-flex items-center cursor-pointer">
+                        <input type="radio" name="attendance-status" value="Present" required class="form-radio text-indigo-600" />
+                        <span class="ml-2 select-none">Present</span>
+                      </label>
+                      <label class="inline-flex items-center cursor-pointer">
+                        <input type="radio" name="attendance-status" value="Absent" required class="form-radio text-indigo-600" />
+                        <span class="ml-2 select-none">Absent</span>
+                      </label>
+                    </div>
+                  </div>
+                  <button type="submit" id="upload-attendance-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-md font-semibold transition">Upload Attendance</button>
+                </form>
+              </div>
+            </div>
+            <div class="mt-8">
+              <h4 class="text-indigo-700 font-semibold mb-3">Attendance Records</h4>
+              <div class="mb-4 flex flex-col md:flex-row md:space-x-4 space-y-4 md:space-y-0">
+                <div class="flex-1">
+                  <label for="filter-batch" class="block font-semibold text-indigo-700 mb-1">Filter by Batch</label>
+                  <select id="filter-batch" class="w-full border border-indigo-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="">All Batches</option>
+                  </select>
+                </div>
+                <div class="flex-1">
+                  <label for="filter-student" class="block font-semibold text-indigo-700 mb-1">Filter by Student</label>
+                  <select id="filter-student" class="w-full border border-indigo-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" disabled>
+                    <option value="">All Students</option>
+                  </select>
+                </div>
+                <div class="flex-1">
+                  <label for="filter-month" class="block font-semibold text-indigo-700 mb-1">Filter by Month</label>
+                  <input type="month" id="filter-month" class="w-full border border-indigo-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                </div>
+                <div class="flex-1">
+                  <label for="filter-date" class="block font-semibold text-indigo-700 mb-1">Filter by Date</label>
+                  <input type="date" id="filter-date" class="w-full border border-indigo-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                </div>
+              </div>
+              <div class="overflow-x-auto max-h-96 overflow-y-auto">
+                <table class="min-w-full bg-white rounded-md shadow-md" role="table" aria-label="Attendance records table">
+                  <thead class="bg-indigo-600 text-white sticky top-0">
+                    <tr>
+                      <th class="py-2 px-4 text-left">Student</th>
+                      <th class="py-2 px-4 text-left">Batch</th>
+                      <th class="py-2 px-4 text-left">Date</th>
+                      <th class="py-2 px-4 text-left">Day</th>
+                      <th class="py-2 px-4 text-left">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="attendance-records" class="divide-y divide-indigo-200"></tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- Exam Schedule Section -->
+          <section id="exam-schedule-section" class="hidden max-w-5xl mx-auto bg-indigo-50 p-6 rounded-md shadow-md">
+            <h3 class="text-2xl font-semibold text-indigo-700 mb-6">Exam Schedule Management</h3>
+            <form id="exam-schedule-form" class="space-y-4 max-w-3xl" autocomplete="off">
+              <div>
+                <label for="exam-name" class="block font-medium text-indigo-800 mb-1">Exam Name</label>
+                <input type="text" id="exam-name" required class="w-full border border-indigo-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+              </div>
+              <div>
+                <label for="exam-batch" class="block font-medium text-indigo-800 mb-1">Select Batch</label>
+                <select id="exam-batch" required class="w-full border border-indigo-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                  <option value="" disabled selected>Select batch</option>
+                </select>
+              </div>
+              <div>
+                <label for="exam-date" class="block font-medium text-indigo-800 mb-1">Date</label>
+                <input type="date" id="exam-date" required class="w-full border border-indigo-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+              </div>
+              <div>
+                <label for="exam-time" class="block font-medium text-indigo-800 mb-1">Time (12-hour format)</label>
+                <input type="time" id="exam-time" required class="w-full border border-indigo-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" step="60" />
+              </div>
+              <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-md transition">Add Exam</button>
+            </form>
+            <div class="mt-8">
+              <h4 class="text-indigo-700 font-semibold mb-3">Exam Schedule</h4>
+              <div class="overflow-x-auto">
+                <table class="min-w-full bg-white rounded-md shadow-md" role="table" aria-label="Exam schedule table">
+                  <thead class="bg-indigo-600 text-white">
+                    <tr>
+                      <th class="py-2 px-4 text-left">Exam Name</th>
+                      <th class="py-2 px-4 text-left">Batch</th>
+                      <th class="py-2 px-4 text-left">Date</th>
+                      <th class="py-2 px-4 text-left">Time</th>
+                    </tr>
+                  </thead>
+                  <tbody id="exam-schedule-list" class="divide-y divide-indigo-200"></tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- Result Management Section -->
+          <section id="result-management-section" class="hidden max-w-5xl mx-auto bg-indigo-50 p-6 rounded-md shadow-md">
+            <h3 class="text-2xl font-semibold text-indigo-700 mb-6">Result Management</h3>
+            <form id="result-form" class="space-y-4 max-w-3xl" autocomplete="off">
+              <div>
+                <label for="result-title" class="block font-medium text-indigo-800 mb-1">Result Title (e.g. Exam Name or Term)</label>
+                <input type="text" id="result-title" required class="w-full border border-indigo-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Enter result title" />
+              </div>
+              <div>
+                <label for="result-date" class="block font-medium text-indigo-800 mb-1">Result Date</label>
+                <input type="date" id="result-date" required class="w-full border border-indigo-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+              </div>
+              <div>
+                <label for="result-student-select" class="block font-semibold text-indigo-600 mb-2">Select Student</label>
+                <select id="result-student-select" class="w-full border border-indigo-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" aria-label="Select student for result">
+                  <option value="" disabled selected>Select student</option>
+                </select>
+              </div>
+              <div id="subjects-container" class="space-y-4">
+                <div class="subject-row grid grid-cols-12 gap-2 items-center">
+                  <div class="col-span-5">
+                    <label class="block font-medium text-indigo-800 mb-1">Subject Name</label>
+                    <input type="text" class="subject-name w-full border border-indigo-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" required />
+                  </div>
+                  <div class="col-span-3">
+                    <label class="block font-medium text-indigo-800 mb-1">Marks Obtained</label>
+                    <input type="number" min="0" class="marks-obtained w-full border border-indigo-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" required />
+                  </div>
+                  <div class="col-span-3">
+                    <label class="block font-medium text-indigo-800 mb-1">Total Marks</label>
+                    <input type="number" min="1" class="total-marks w-full border border-indigo-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" required />
+                  </div>
+                  <div class="col-span-1 flex items-end">
+                    <button type="button" class="remove-subject-btn bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md focus:outline-none focus:ring-2 focus:ring-red-400" title="Remove Subject">
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <button type="button" id="add-subject-btn" class="bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-2 px-4 rounded-md transition focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                Add More Subjects
+              </button>
+              <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-md font-semibold transition">Upload Result</button>
+            </form>
+
+            <div class="mt-8 max-w-5xl mx-auto">
+              <h4 class="text-indigo-700 font-semibold mb-3">Results Records</h4>
+              <div id="results-student-cards" class="space-y-6"></div>
+            </div>
+          </section>
+
+          <!-- Batches Management Section -->
+          <section id="batches-management-section" class="hidden max-w-3xl mx-auto bg-indigo-50 p-6 rounded-md shadow-md">
+            <h3 class="text-2xl font-semibold text-indigo-700 mb-6">Batches Management</h3>
+            <form id="batch-form" class="space-y-4" autocomplete="off">
+              <div>
+                <label for="batch-name" class="block font-medium text-indigo-800 mb-1">Batch Name</label>
+                <input type="text" id="batch-name" required class="w-full border border-indigo-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+              </div>
+              <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-md transition">Add Batch</button>
+            </form>
+            <div class="mt-8">
+              <h4 class="text-indigo-700 font-semibold mb-3">Batches List</h4>
+              <ul id="batches-list" class="list-disc list-inside space-y-1 text-indigo-800"></ul>
+            </div>
+          </section>
+
+          <!-- Add Student Section -->
+          <section id="add-student-section" class="hidden max-w-4xl mx-auto bg-indigo-50 p-6 rounded-md shadow-md">
+            <h3 class="text-2xl font-semibold text-indigo-700 mb-6">Add Students</h3>
+            <form id="add-student-form" class="space-y-4" autocomplete="off">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label for="student-name" class="block font-medium text-indigo-800 mb-1">Student Name <span class="text-red-600">*</span></label>
+                  <div class="flex items-center space-x-2">
+                    <input type="text" id="student-name" required class="flex-grow border border-indigo-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                    <button type="button" id="clear-student-name" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md focus:outline-none focus:ring-2 focus:ring-red-400" title="Clear Name">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <label for="student-batch" class="block font-medium text-indigo-800 mb-1">Select Batch <span class="text-red-600">*</span></label>
+                  <select id="student-batch" required class="w-full border border-indigo-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="" disabled selected>Select batch</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="student-email" class="block font-medium text-indigo-800 mb-1">Email (Optional)</label>
+                  <input type="email" id="student-email" class="w-full border border-indigo-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" autocomplete="email" />
+                </div>
+                <div>
+                  <label for="student-phone" class="block font-medium text-indigo-800 mb-1">Phone <span class="text-red-600">*</span></label>
+                  <input type="tel" id="student-phone" required class="w-full border border-indigo-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" autocomplete="tel" />
+                </div>
+                <div>
+                  <label for="student-username" class="block font-medium text-indigo-800 mb-1">Username <span class="text-red-600">*</span></label>
+                  <input type="text" id="student-username" required class="w-full border border-indigo-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" autocomplete="username" />
+                </div>
+                <div>
+                  <label for="student-password" class="block font-medium text-indigo-800 mb-1">Password <span class="text-red-600">*</span></label>
+                  <input type="password" id="student-password" required class="w-full border border-indigo-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" autocomplete="new-password" />
+                </div>
+              </div>
+              <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-md transition">Add Student</button>
+            </form>
+
+            <div class="mt-10">
+              <h4 class="text-indigo-700 font-semibold mb-4">Students List</h4>
+              <div class="overflow-x-auto max-h-96 overflow-y-auto border border-indigo-300 rounded-md shadow-md bg-white">
+                <table class="min-w-full" role="table" aria-label="Students list table">
+                  <thead class="bg-indigo-600 text-white sticky top-0">
+                    <tr>
+                      <th class="py-2 px-4 text-left">Name</th>
+                      <th class="py-2 px-4 text-left">Batch</th>
+                      <th class="py-2 px-4 text-left">Email</th>
+                      <th class="py-2 px-4 text-left">Phone</th>
+                      <th class="py-2 px-4 text-left">Username</th>
+                      <th class="py-2 px-4 text-left">Password</th>
+                      <th class="py-2 px-4 text-center">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="students-list" class="divide-y divide-indigo-200"></tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <!-- Student Dashboard (Admin style) -->
+    <div id="student-dashboard" class="hidden flex flex-col min-h-screen">
+      <header class="bg-indigo-700 text-white flex items-center justify-between px-6 py-4 shadow-md relative">
+        <div class="flex items-center space-x-4">
+          <button id="student-sidebar-toggle-btn" class="md:hidden text-white text-2xl focus:outline-none" aria-label="Toggle sidebar">
+            <i class="fas fa-bars"></i>
+          </button>
+          <h2 class="text-xl font-semibold">MCC Madhuram Commerce Classes - Student Dashboard</h2>
+        </div>
+        <div class="flex items-center space-x-4">
+          <button id="student-profile-btn" class="flex items-center space-x-2 hover:underline focus:outline-none">
+            <i class="fas fa-user-circle text-2xl"></i>
+            <span id="student-username" class="font-medium"></span>
+          </button>
+          <button id="student-logout-btn" title="Logout" class="hover:text-indigo-300 focus:outline-none">
+            <i class="fas fa-sign-out-alt text-xl"></i>
+          </button>
+        </div>
+      </header>
+      <div class="flex flex-1 overflow-hidden relative">
+        <nav id="student-sidebar" class="w-64 bg-indigo-50 border-r border-indigo-200 overflow-y-auto hidden md:block" aria-label="Student sidebar navigation">
+          <ul class="py-6 space-y-1">
+            <li>
+              <button data-section="dashboard" class="w-full text-left px-6 py-3 flex items-center space-x-3 text-indigo-700 font-semibold hover:bg-indigo-100 focus:outline-none rounded-md">
+                <i class="fas fa-tachometer-alt fa-lg"></i>
+                <span>Dashboard</span>
+              </button>
+            </li>
+            <li>
+              <button data-section="profile" class="w-full text-left px-6 py-3 flex items-center space-x-3 text-indigo-700 font-semibold hover:bg-indigo-100 focus:outline-none rounded-md">
+                <i class="fas fa-user fa-lg"></i>
+                <span>Profile</span>
+              </button>
+            </li>
+          </ul>
+        </nav>
+        <main class="flex-1 overflow-y-auto p-6 bg-white relative max-w-full">
+          <!-- Back Button -->
+          <button id="student-back-btn" class="hidden absolute top-4 right-4 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-400 flex items-center space-x-2 z-50">
+            <i class="fas fa-arrow-left"></i><span>Back</span>
+          </button>
+
+          <!-- Dashboard Section -->
+          <section id="student-dashboard-section" class="space-y-6">
+            <h3 class="text-2xl font-semibold text-indigo-700 mb-4">Welcome, <span id="student-name-display"></span></h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              <button id="student-open-attendance" class="flex flex-col items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg p-6 shadow-md transition focus:outline-none focus:ring-4 focus:ring-indigo-400">
+                <i class="fas fa-calendar-check fa-3x mb-3"></i>
+                <span class="text-lg font-semibold">Attendance Records</span>
+              </button>
+              <button id="student-open-exam-schedule" class="flex flex-col items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg p-6 shadow-md transition focus:outline-none focus:ring-4 focus:ring-indigo-400">
+                <i class="fas fa-calendar-alt fa-3x mb-3"></i>
+                <span class="text-lg font-semibold">Exam Schedule</span>
+              </button>
+              <button id="student-open-results" class="flex flex-col items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg p-6 shadow-md transition focus:outline-none focus:ring-4 focus:ring-indigo-400">
+                <i class="fas fa-file-alt fa-3x mb-3"></i>
+                <span class="text-lg font-semibold">Results</span>
+              </button>
+            </div>
+          </section>
+
+          <!-- Profile Section -->
+          <section id="student-profile-section" class="hidden max-w-3xl mx-auto bg-indigo-50 p-6 rounded-md shadow-md space-y-6">
+            <h3 class="text-2xl font-semibold text-indigo-700">Profile</h3>
+            <form id="student-profile-form" class="space-y-4" autocomplete="off">
+              <div>
+                <label for="student-name-input" class="block font-medium text-indigo-800 mb-1">Name</label>
+                <input type="text" id="student-name-input" name="student-name" class="w-full border border-indigo-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" autocomplete="name" required />
+              </div>
+              <div>
+                <label for="student-email-input" class="block font-medium text-indigo-800 mb-1">Email</label>
+                <input type="email" id="student-email-input" name="student-email" class="w-full border border-indigo-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" autocomplete="email" />
+              </div>
+              <div>
+                <label for="student-phone-input" class="block font-medium text-indigo-800 mb-1">Phone</label>
+                <input type="tel" id="student-phone-input" name="student-phone" class="w-full border border-indigo-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" autocomplete="tel" required />
+              </div>
+              <hr class="border-indigo-300" />
+              <div>
+                <label for="student-username-input" class="block font-medium text-indigo-800 mb-1">Username</label>
+                <input type="text" id="student-username-input" name="student-username" class="w-full border border-indigo-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" autocomplete="username" required />
+              </div>
+              <div>
+                <label for="student-password-input" class="block font-medium text-indigo-800 mb-1">New Password</label>
+                <input type="password" id="student-password-input" name="student-password" placeholder="Leave blank to keep current password" class="w-full border border-indigo-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" autocomplete="new-password" />
+              </div>
+              <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-md transition">Update Profile</button>
+            </form>
+          </section>
+
+          <!-- Attendance Records Section -->
+          <section id="student-attendance-section" class="hidden max-w-5xl mx-auto bg-indigo-50 p-6 rounded-md shadow-md">
+            <h3 class="text-2xl font-semibold text-indigo-700 mb-6">Attendance Records</h3>
+            <div class="mb-6 flex flex-col md:flex-row md:space-x-4 space-y-4 md:space-y-0">
+              <div class="flex-1">
+                <label for="student-filter-batch" class="block font-semibold text-indigo-700 mb-1">Select Batch</label>
+                <select id="student-filter-batch" class="w-full border border-indigo-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                  <option value="">All Batches</option>
+                </select>
+              </div>
+              <div class="flex-1">
+                <label for="student-filter-month" class="block font-semibold text-indigo-700 mb-1">Filter by Month</label>
+                <input type="month" id="student-filter-month" class="w-full border border-indigo-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+              </div>
+              <div class="flex-1">
+                <label for="student-filter-date" class="block font-semibold text-indigo-700 mb-1">Filter by Date</label>
+                <input type="date" id="student-filter-date" class="w-full border border-indigo-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+              </div>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="min-w-full bg-indigo-50 rounded-md shadow-md" role="table" aria-label="Student attendance records table">
+                <thead class="bg-indigo-600 text-white">
+                  <tr>
+                    <th class="py-2 px-4 text-left">Date</th>
+                    <th class="py-2 px-4 text-left">Day</th>
+                    <th class="py-2 px-4 text-left">Status</th>
+                    <th class="py-2 px-4 text-left">Batch</th>
+                  </tr>
+                </thead>
+                <tbody id="student-attendance-records" class="divide-y divide-indigo-300"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- Exam Schedule Section -->
+          <section id="student-exam-schedule-section" class="hidden max-w-5xl mx-auto bg-indigo-50 p-6 rounded-md shadow-md">
+            <h3 class="text-2xl font-semibold text-indigo-700 mb-6">Exam Schedule</h3>
+            <div class="overflow-x-auto">
+              <table class="min-w-full bg-indigo-50 rounded-md shadow-md" role="table" aria-label="Student exam schedule table">
+                <thead class="bg-indigo-600 text-white">
+                  <tr>
+                    <th class="py-2 px-4 text-left">Exam Name</th>
+                    <th class="py-2 px-4 text-left">Date</th>
+                    <th class="py-2 px-4 text-left">Time</th>
+                  </tr>
+                </thead>
+                <tbody id="student-exam-schedule" class="divide-y divide-indigo-300"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- Results Section -->
+          <section id="student-results-section" class="hidden max-w-5xl mx-auto bg-indigo-50 p-6 rounded-md shadow-md space-y-6">
+            <h3 class="text-2xl font-semibold text-indigo-700 mb-6">Results</h3>
+            <div id="student-results-list" class="space-y-6 max-w-4xl mx-auto">
+              <!-- Dynamically filled with clickable result titles -->
+            </div>
+            <div id="student-results-details" class="mt-6 max-w-4xl mx-auto bg-indigo-50 rounded-md shadow-md p-6 hidden" aria-live="polite" aria-atomic="true">
+              <button id="close-result-details" class="mb-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-red-400 flex items-center space-x-2">
+                <i class="fas fa-times"></i><span>Close</span>
+              </button>
+              <h5 id="result-details-title" class="text-xl font-semibold text-indigo-700 mb-4"></h5>
+              <div class="overflow-x-auto">
+                <table id="result-details-table" class="min-w-full bg-white rounded-md shadow-md" role="table" aria-label="Detailed result table">
+                  <thead class="bg-indigo-600 text-white">
+                    <tr>
+                      <th class="py-2 px-4 text-left">Subject</th>
+                      <th class="py-2 px-4 text-left">Marks Obtained</th>
+                      <th class="py-2 px-4 text-left">Total Marks</th>
+                    </tr>
+                  </thead>
+                  <tbody id="result-details-tbody" class="divide-y divide-indigo-300"></tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Data storage (simulate backend with localStorage)
+    const STORAGE_KEYS = {
+      USERS: 'school_users',
+      BATCHES: 'school_batches',
+      ATTENDANCE: 'school_attendance',
+      EXAMS: 'school_exams',
+      RESULTS: 'school_results',
+      LOGGED_IN_USER: 'school_logged_in_user',
+    };
+
+    // Initialize data if not present
+    function initData() {
+      if (!localStorage.getItem(STORAGE_KEYS.USERS)) {
+        // Default admin user: username: admin, password: admin123
+        const users = [
+          { id: 'admin-1', username: 'admin', password: 'admin123', role: 'admin', name: 'Admin User', email: 'admin@school.com', phone: '1234567890' },
+          { id: 'student-1', username: 'student1', password: 'student123', role: 'student', name: 'John Doe', email: 'john.doe@example.com', phone: '+12345678901', batchId: 'batch-1' },
+          { id: 'student-2', username: 'student2', password: 'student123', role: 'student', name: 'Jane Smith', email: 'jane.smith@example.com', phone: '+19876543210', batchId: 'batch-2' },
+        ];
+        localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+      }
+      if (!localStorage.getItem(STORAGE_KEYS.BATCHES)) {
+        const batches = [
+          { id: 'batch-1', name: 'Batch A' },
+          { id: 'batch-2', name: 'Batch B' },
+        ];
+        localStorage.setItem(STORAGE_KEYS.BATCHES, JSON.stringify(batches));
+      }
+      if (!localStorage.getItem(STORAGE_KEYS.ATTENDANCE)) {
+        localStorage.setItem(STORAGE_KEYS.ATTENDANCE, JSON.stringify([]));
+      }
+      if (!localStorage.getItem(STORAGE_KEYS.EXAMS)) {
+        localStorage.setItem(STORAGE_KEYS.EXAMS, JSON.stringify([]));
+      }
+      if (!localStorage.getItem(STORAGE_KEYS.RESULTS)) {
+        localStorage.setItem(STORAGE_KEYS.RESULTS, JSON.stringify([]));
+      }
+    }
+
+    initData();
+
+    // Utility functions
+    function getUsers() {
+      return JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS)) || [];
+    }
+    function setUsers(users) {
+      localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+    }
+    function getBatches() {
+      return JSON.parse(localStorage.getItem(STORAGE_KEYS.BATCHES)) || [];
+    }
+    function setBatches(batches) {
+      localStorage.setItem(STORAGE_KEYS.BATCHES, JSON.stringify(batches));
+    }
+    function getAttendance() {
+      return JSON.parse(localStorage.getItem(STORAGE_KEYS.ATTENDANCE)) || [];
+    }
+    function setAttendance(attendance) {
+      localStorage.setItem(STORAGE_KEYS.ATTENDANCE, JSON.stringify(attendance));
+    }
+    function getExams() {
+      return JSON.parse(localStorage.getItem(STORAGE_KEYS.EXAMS)) || [];
+    }
+    function setExams(exams) {
+      localStorage.setItem(STORAGE_KEYS.EXAMS, JSON.stringify(exams));
+    }
+    function getResults() {
+      return JSON.parse(localStorage.getItem(STORAGE_KEYS.RESULTS)) || [];
+    }
+    function setResults(results) {
+      localStorage.setItem(STORAGE_KEYS.RESULTS, JSON.stringify(results));
+    }
+    function getLoggedInUser() {
+      return JSON.parse(localStorage.getItem(STORAGE_KEYS.LOGGED_IN_USER));
+    }
+    function setLoggedInUser(user) {
+      localStorage.setItem(STORAGE_KEYS.LOGGED_IN_USER, JSON.stringify(user));
+    }
+    function clearLoggedInUser() {
+      localStorage.removeItem(STORAGE_KEYS.LOGGED_IN_USER);
+    }
+
+    // DOM Elements
+    const loginScreen = document.getElementById('login-screen');
+    const adminDashboard = document.getElementById('admin-dashboard');
+    const studentDashboard = document.getElementById('student-dashboard');
+
+    const loginForm = document.getElementById('login-form');
+    const roleSelect = document.getElementById('role');
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+
+    // Admin elements
+    const adminUsernameDisplay = document.getElementById('admin-username');
+    const adminProfileBtn = document.getElementById('admin-profile-btn');
+    const adminLogoutBtn = document.getElementById('admin-logout-btn');
+
+    const adminDashboardSection = document.getElementById('admin-dashboard-section');
+    const adminProfileSection = document.getElementById('admin-profile-section');
+
+    const attendanceManagementSection = document.getElementById('attendance-management-section');
+    const examScheduleSection = document.getElementById('exam-schedule-section');
+    const resultManagementSection = document.getElementById('result-management-section');
+    const batchesManagementSection = document.getElementById('batches-management-section');
+    const addStudentSection = document.getElementById('add-student-section');
+
+    const openAttendanceBtn = document.getElementById('open-attendance-management');
+    const openExamScheduleBtn = document.getElementById('open-exam-schedule');
+    const openResultManagementBtn = document.getElementById('open-result-management');
+    const openBatchesManagementBtn = document.getElementById('open-batches-management');
+    const openAddStudentBtn = document.getElementById('open-add-student');
+
+    const adminBackBtn = document.getElementById('admin-back-btn');
+    const sidebarToggleBtn = document.getElementById('sidebar-toggle-btn');
+    const sidebarNav = document.querySelector('nav.w-64');
+
+    // Attendance Management Elements
+    const attendanceStudentSelect = document.getElementById('attendance-student-select');
+    const attendanceBatchSelect = document.getElementById('attendance-batch-select');
+    const attendanceForm = document.getElementById('attendance-form');
+    const attendanceRecordsTbody = document.getElementById('attendance-records');
+    const attendanceStudentPhone = document.getElementById('attendance-student-phone');
+    const uploadAttendanceBtn = document.getElementById('upload-attendance-btn');
+
+    // Exam Schedule Elements
+    const examScheduleForm = document.getElementById('exam-schedule-form');
+    const examScheduleList = document.getElementById('exam-schedule-list');
+    const examBatchSelect = document.getElementById('exam-batch');
+    const examTimeInput = document.getElementById('exam-time');
+
+    // Result Management Elements
+    const resultStudentSelect = document.getElementById('result-student-select');
+    const resultForm = document.getElementById('result-form');
+    const resultTitleInput = document.getElementById('result-title');
+    const resultDateInput = document.getElementById('result-date');
+    const subjectsContainer = document.getElementById('subjects-container');
+    const addSubjectBtn = document.getElementById('add-subject-btn');
+    const resultsStudentCards = document.getElementById('results-student-cards');
+
+    // Batches Management Elements
+    const batchForm = document.getElementById('batch-form');
+    const batchesList = document.getElementById('batches-list');
+    const batchNameInput = document.getElementById('batch-name');
+
+    // Add Student Elements
+    const addStudentForm = document.getElementById('add-student-form');
+    const studentBatchSelect = document.getElementById('student-batch');
+    const studentsListTbody = document.getElementById('students-list');
+    const studentNameInput = document.getElementById('student-name');
+    const studentEmailInput = document.getElementById('student-email');
+    const studentPhoneInput = document.getElementById('student-phone');
+    const studentUsernameInput = document.getElementById('student-username');
+    const studentPasswordInput = document.getElementById('student-password');
+    const clearStudentNameBtn = document.getElementById('clear-student-name');
+
+    // Admin Profile Form
+    const adminProfileForm = document.getElementById('admin-profile-form');
+    const adminNameInput = document.getElementById('admin-name');
+    const adminEmailInput = document.getElementById('admin-email');
+    const adminPhoneInput = document.getElementById('admin-phone');
+    const adminUsernameInput = document.getElementById('admin-username-input');
+    const adminPasswordInput = document.getElementById('admin-password-input');
+
+    // Student Dashboard Elements
+    const studentUsernameDisplay = document.getElementById('student-username');
+    const studentLogoutBtn = document.getElementById('student-logout-btn');
+    const studentNameDisplay = document.getElementById('student-name-display');
+    const studentAttendanceRecords = document.getElementById('student-attendance-records');
+    const studentExamSchedule = document.getElementById('student-exam-schedule');
+    const studentResultsList = document.getElementById('student-results-list');
+    const studentResultsDetails = document.getElementById('student-results-details');
+    const resultDetailsTitle = document.getElementById('result-details-title');
+    const resultDetailsTbody = document.getElementById('result-details-tbody');
+    const closeResultDetailsBtn = document.getElementById('close-result-details');
+
+    const studentDashboardSection = document.getElementById('student-dashboard-section');
+    const studentProfileSection = document.getElementById('student-profile-section');
+    const studentAttendanceSection = document.getElementById('student-attendance-section');
+    const studentExamScheduleSection = document.getElementById('student-exam-schedule-section');
+    const studentResultsSection = document.getElementById('student-results-section');
+
+    const studentSidebar = document.getElementById('student-sidebar');
+    const studentSidebarToggleBtn = document.getElementById('student-sidebar-toggle-btn');
+    const studentBackBtn = document.getElementById('student-back-btn');
+
+    // Navigation buttons in admin sidebar
+    const adminNavButtons = document.querySelectorAll('nav button[data-section]');
+    // Navigation buttons in student sidebar
+    const studentNavButtons = studentSidebar.querySelectorAll('button[data-section]');
+
+    // Filter elements for attendance records (admin)
+    const filterBatchSelect = document.getElementById('filter-batch');
+    const filterStudentSelect = document.getElementById('filter-student');
+    const filterMonthInput = document.getElementById('filter-month');
+    const filterDateInput = document.getElementById('filter-date');
+
+    // Filter elements for attendance records (student)
+    const studentFilterBatchSelect = document.getElementById('student-filter-batch');
+    const studentFilterMonthInput = document.getElementById('student-filter-month');
+    const studentFilterDateInput = document.getElementById('student-filter-date');
+
+    // Current logged in user
+    let currentUser = getLoggedInUser();
+
+    // Helper: format date to readable string and day
+    function formatDateAndDay(dateStr) {
+      const dateObj = new Date(dateStr);
+      if (isNaN(dateObj)) return { date: dateStr, day: '' };
+      const options = { year: 'numeric', month: 'short', day: 'numeric' };
+      const dateFormatted = dateObj.toLocaleDateString(undefined, options);
+      const dayFormatted = dateObj.toLocaleDateString(undefined, { weekday: 'long' });
+      return { date: dateFormatted, day: dayFormatted };
+    }
+
+    // Convert 24h time string (HH:mm) to 12h format with AM/PM
+    function convertTo12Hour(time24) {
+      if (!time24) return '';
+      const [hourStr, minuteStr] = time24.split(':');
+      let hour = parseInt(hourStr, 10);
+      const minute = minuteStr;
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      hour = hour % 12;
+      if (hour === 0) hour = 12;
+      return `${hour}:${minute} ${ampm}`;
+    }
+
+    // Show only one admin section at a time
+    function showAdminSection(sectionId) {
+      [
+        adminDashboardSection,
+        adminProfileSection,
+        attendanceManagementSection,
+        examScheduleSection,
+        resultManagementSection,
+        batchesManagementSection,
+        addStudentSection,
+      ].forEach((section) => {
+        if (section.id === sectionId) {
+          section.classList.remove('hidden');
+        } else {
+          section.classList.add('hidden');
+        }
+      });
+      // Show or hide back button
+      if (sectionId === 'admin-dashboard-section') {
+        adminBackBtn.classList.add('hidden');
+      } else {
+        adminBackBtn.classList.remove('hidden');
+      }
+      // Close sidebar on mobile when navigating
+      if (window.innerWidth <= 768) {
+        sidebarNav.classList.remove('open');
+      }
+    }
+
+    // Show only one student section at a time
+    function showStudentSection(sectionId) {
+      [
+        studentDashboardSection,
+        studentProfileSection,
+        studentAttendanceSection,
+        studentExamScheduleSection,
+        studentResultsSection,
+      ].forEach((section) => {
+        if (section.id === sectionId) {
+          section.classList.remove('hidden');
+        } else {
+          section.classList.add('hidden');
+        }
+      });
+      // Show or hide back button
+      if (sectionId === 'student-dashboard-section') {
+        studentBackBtn.classList.add('hidden');
+      } else {
+        studentBackBtn.classList.remove('hidden');
+      }
+      // Close sidebar on mobile when navigating
+      if (window.innerWidth <= 768) {
+        studentSidebar.classList.remove('open');
+      }
+    }
+
+    // Populate students dropdowns for admin
+    function populateStudentsDropdowns() {
+      const users = getUsers().filter((u) => u.role === 'student');
+      attendanceStudentSelect.innerHTML = '<option value="" disabled selected>Select student</option>';
+      resultStudentSelect.innerHTML = '<option value="" disabled selected>Select student</option>';
+      filterStudentSelect.innerHTML = '<option value="">All Students</option>';
+      users.forEach((student) => {
+        const option1 = document.createElement('option');
+        option1.value = student.id;
+        option1.textContent = student.name + (student.batchId ? ` (${getBatchNameById(student.batchId)})` : '');
+        attendanceStudentSelect.appendChild(option1);
+
+        const option2 = document.createElement('option');
+        option2.value = student.id;
+        option2.textContent = student.name + (student.batchId ? ` (${getBatchNameById(student.batchId)})` : '');
+        resultStudentSelect.appendChild(option2);
+
+        const option3 = document.createElement('option');
+        option3.value = student.id;
+        option3.textContent = student.name + (student.batchId ? ` (${getBatchNameById(student.batchId)})` : '');
+        filterStudentSelect.appendChild(option3);
+      });
+      filterStudentSelect.disabled = false;
+    }
+
+    // Populate batches dropdowns for admin
+    function populateBatchesDropdowns() {
+      const batches = getBatches();
+      attendanceBatchSelect.innerHTML = '<option value="" disabled selected>Select batch</option>';
+      studentBatchSelect.innerHTML = '<option value="" disabled selected>Select batch</option>';
+      examBatchSelect.innerHTML = '<option value="" disabled selected>Select batch</option>';
+      filterBatchSelect.innerHTML = '<option value="">All Batches</option>';
+      studentFilterBatchSelect.innerHTML = '<option value="">All Batches</option>';
+      batches.forEach((batch) => {
+        const option1 = document.createElement('option');
+        option1.value = batch.id;
+        option1.textContent = batch.name;
+        attendanceBatchSelect.appendChild(option1);
+
+        const option2 = document.createElement('option');
+        option2.value = batch.id;
+        option2.textContent = batch.name;
+        studentBatchSelect.appendChild(option2);
+
+        const option3 = document.createElement('option');
+        option3.value = batch.id;
+        option3.textContent = batch.name;
+        examBatchSelect.appendChild(option3);
+
+        const option4 = document.createElement('option');
+        option4.value = batch.id;
+        option4.textContent = batch.name;
+        filterBatchSelect.appendChild(option4);
+
+        const option5 = document.createElement('option');
+        option5.value = batch.id;
+        option5.textContent = batch.name;
+        studentFilterBatchSelect.appendChild(option5);
+      });
+    }
+
+    // Get batch name by id
+    function getBatchNameById(id) {
+      const batch = getBatches().find((b) => b.id === id);
+      return batch ? batch.name : '';
+    }
+
+    // Get student name by id
+    function getStudentNameById(id) {
+      const student = getUsers().find((u) => u.id === id);
+      return student ? student.name : '';
+    }
+
+    // Get student batch id by student id
+    function getStudentBatchId(studentId) {
+      const student = getUsers().find((u) => u.id === studentId);
+      return student ? student.batchId : null;
+    }
+
+    // Get student phone by id
+    function getStudentPhoneById(studentId) {
+      const student = getUsers().find((u) => u.id === studentId);
+      return student ? student.phone : '';
+    }
+
+    // Get student email by id
+    function getStudentEmailById(studentId) {
+      const student = getUsers().find((u) => u.id === studentId);
+      return student ? student.email : '';
+    }
+
+    // Update attendance records table in admin with filters
+    function updateAttendanceRecordsTable() {
+      const attendance = getAttendance();
+      const selectedBatch = filterBatchSelect.value;
+      const selectedStudent = filterStudentSelect.value;
+      const selectedMonth = filterMonthInput.value; // format: YYYY-MM
+      const selectedDate = filterDateInput.value; // format: YYYY-MM-DD
+
+      let filteredAttendance = attendance;
+
+      if (selectedBatch) {
+        filteredAttendance = filteredAttendance.filter(a => a.batchId === selectedBatch);
+      }
+      if (selectedStudent) {
+        filteredAttendance = filteredAttendance.filter(a => a.studentId === selectedStudent);
+      }
+      if (selectedMonth) {
+        filteredAttendance = filteredAttendance.filter(a => a.date.startsWith(selectedMonth));
+      }
+      if (selectedDate) {
+        filteredAttendance = filteredAttendance.filter(a => a.date === selectedDate);
+      }
+
+      attendanceRecordsTbody.innerHTML = '';
+      filteredAttendance.forEach((record) => {
+        const tr = document.createElement('tr');
+        tr.classList.add('hover:bg-indigo-100');
+        const { date, day } = formatDateAndDay(record.date);
+        tr.innerHTML = `
+          <td class="py-2 px-4">${getStudentNameById(record.studentId)}</td>
+          <td class="py-2 px-4">${getBatchNameById(record.batchId)}</td>
+          <td class="py-2 px-4">${date}</td>
+          <td class="py-2 px-4">${day}</td>
+          <td class="py-2 px-4">${record.status}</td>
+        `;
+        attendanceRecordsTbody.appendChild(tr);
+      });
+    }
+
+    // Update exam schedule table in admin
+    function updateExamScheduleTable() {
+      const exams = getExams();
+      examScheduleList.innerHTML = '';
+      exams.forEach((exam) => {
+        const tr = document.createElement('tr');
+        tr.classList.add('hover:bg-indigo-100');
+        const { date } = formatDateAndDay(exam.date);
+        const time12h = convertTo12Hour(exam.time);
+        tr.innerHTML = `
+          <td class="py-2 px-4">${exam.name}</td>
+          <td class="py-2 px-4">${getBatchNameById(exam.batchId)}</td>
+          <td class="py-2 px-4">${date}</td>
+          <td class="py-2 px-4">${time12h}</td>
+        `;
+        examScheduleList.appendChild(tr);
+      });
+    }
+
+    // Update batches list in admin with delete buttons
+    function updateBatchesList() {
+      const batches = getBatches();
+      batchesList.innerHTML = '';
+      batches.forEach((batch) => {
+        const li = document.createElement('li');
+        li.className = 'flex justify-between items-center';
+        const span = document.createElement('span');
+        span.textContent = batch.name;
+        li.appendChild(span);
+
+        const delBtn = document.createElement('button');
+        delBtn.className = 'ml-4 bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded-md focus:outline-none focus:ring-2 focus:ring-red-400 flex items-center space-x-1';
+        delBtn.title = `Delete batch ${batch.name}`;
+        delBtn.innerHTML = `<i class="fas fa-trash-alt"></i><span>Delete</span>`;
+        delBtn.onclick = () => {
+          if (!confirm(`Are you sure you want to delete the batch "${batch.name}"? This will remove the batch from all students and related data.`)) return;
+          deleteBatch(batch.id);
+        };
+
+        li.appendChild(delBtn);
+        batchesList.appendChild(li);
+      });
+    }
+
+    // Delete batch and update related data
+    function deleteBatch(batchId) {
+      let batches = getBatches();
+      batches = batches.filter(b => b.id !== batchId);
+      setBatches(batches);
+
+      // Remove batchId from students who belong to this batch
+      let users = getUsers();
+      users = users.map(u => {
+        if (u.batchId === batchId) {
+          return { ...u, batchId: null };
+        }
+        return u;
+      });
+      setUsers(users);
+
+      // Remove attendance records for this batch
+      let attendance = getAttendance();
+      attendance = attendance.filter(a => a.batchId !== batchId);
+      setAttendance(attendance);
+
+      // Remove exams for this batch
+      let exams = getExams();
+      exams = exams.filter(e => e.batchId !== batchId);
+      setExams(exams);
+
+      alert('Batch deleted successfully.');
+
+      populateBatchesDropdowns();
+      populateStudentsDropdowns();
+      updateBatchesList();
+      updateStudentsListTable();
+      updateAttendanceRecordsTable();
+    }
+
+    // Update students list table in Add Student section
+    function updateStudentsListTable() {
+      const students = getUsers().filter((u) => u.role === 'student');
+      studentsListTbody.innerHTML = '';
+      students.forEach((student) => {
+        const tr = document.createElement('tr');
+        tr.classList.add('hover:bg-indigo-100');
+        tr.dataset.studentId = student.id;
+        tr.innerHTML = `
+          <td class="py-2 px-4">${student.name}</td>
+          <td class="py-2 px-4">${getBatchNameById(student.batchId)}</td>
+          <td class="py-2 px-4">${student.email || '-'}</td>
+          <td class="py-2 px-4">${student.phone || '-'}</td>
+          <td class="py-2 px-4">${student.username}</td>
+          <td class="py-2 px-4">${student.password}</td>
+          <td class="py-2 px-4 text-center space-x-2">
+            <button class="edit-student-btn text-indigo-600 hover:text-indigo-800 focus:outline-none" title="Edit Student"><i class="fas fa-edit"></i></button>
+            <button class="delete-student-btn text-red-600 hover:text-red-800 focus:outline-none" title="Delete Student"><i class="fas fa-trash-alt"></i></button>
+          </td>
+        `;
+        studentsListTbody.appendChild(tr);
+      });
+      attachStudentListEventListeners();
+      updateStudentLoginCredentialsList();
+    }
+
+    // Update student login credentials list in profile section
+    function updateStudentLoginCredentialsList() {
+      const tbody = document.getElementById('student-login-credentials-list');
+      const students = getUsers().filter(u => u.role === 'student');
+      tbody.innerHTML = '';
+      students.forEach(student => {
+        const tr = document.createElement('tr');
+        tr.dataset.studentId = student.id;
+        tr.innerHTML = `
+          <td class="py-2 px-4">${student.name}</td>
+          <td class="py-2 px-4">${getBatchNameById(student.batchId)}</td>
+          <td class="py-2 px-4">
+            <input type="text" class="edit-username w-full border border-indigo-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-500" value="${student.username}" />
+          </td>
+          <td class="py-2 px-4">
+            <input type="text" class="edit-password w-full border border-indigo-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-500" value="${student.password}" />
+          </td>
+          <td class="py-2 px-4 text-center">
+            <button class="save-credentials-btn bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400" title="Save Changes">
+              <i class="fas fa-save"></i>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      attachSaveCredentialsListeners();
+    }
+
+    // Attach event listeners for edit and delete buttons in students list
+    function attachStudentListEventListeners() {
+      const editButtons = document.querySelectorAll('.edit-student-btn');
+      const deleteButtons = document.querySelectorAll('.delete-student-btn');
+
+      editButtons.forEach((btn) => {
+        btn.onclick = (e) => {
+          const tr = e.target.closest('tr');
+          const studentId = tr.dataset.studentId;
+          editStudent(studentId);
+        };
+      });
+
+      deleteButtons.forEach((btn) => {
+        btn.onclick = (e) => {
+          const tr = e.target.closest('tr');
+          const studentId = tr.dataset.studentId;
+          deleteStudent(studentId);
+        };
+      });
+    }
+
+    // Attach event listeners for save credentials buttons in profile section
+    function attachSaveCredentialsListeners() {
+      const saveButtons = document.querySelectorAll('.save-credentials-btn');
+      saveButtons.forEach(btn => {
+        btn.onclick = (e) => {
+          const tr = e.target.closest('tr');
+          const studentId = tr.dataset.studentId;
+          const usernameInput = tr.querySelector('.edit-username');
+          const passwordInput = tr.querySelector('.edit-password');
+          const newUsername = usernameInput.value.trim();
+          const newPassword = passwordInput.value;
+
+          if (!newUsername || !newPassword) {
+            alert('Username and password cannot be empty.');
+            return;
+          }
+
+          const users = getUsers();
+          // Check username uniqueness except current student
+          if (users.some(u => u.username.toLowerCase() === newUsername.toLowerCase() && u.id !== studentId)) {
+            alert('Username already exists. Please choose another.');
+            return;
+          }
+
+          const index = users.findIndex(u => u.id === studentId);
+          if (index !== -1) {
+            users[index].username = newUsername;
+            users[index].password = newPassword;
+            setUsers(users);
+            alert('Student login credentials updated successfully.');
+            populateStudentsDropdowns();
+            updateStudentsListTable();
+          }
+        };
+      });
+    }
+
+    // Edit student: populate form with student data for editing
+    function editStudent(studentId) {
+      const users = getUsers();
+      const student = users.find((u) => u.id === studentId);
+      if (!student) return;
+
+      studentNameInput.value = student.name;
+      studentEmailInput.value = student.email || '';
+      studentPhoneInput.value = student.phone || '';
+      studentUsernameInput.value = student.username;
+      studentPasswordInput.value = student.password;
+      studentBatchSelect.value = student.batchId || '';
+
+      addStudentForm.dataset.editingId = studentId;
+      addStudentForm.querySelector('button[type="submit"]').textContent = 'Update Student';
+      studentNameInput.focus();
+      window.scrollTo({ top: addStudentSection.offsetTop, behavior: 'smooth' });
+    }
+
+    // Delete student
+    function deleteStudent(studentId) {
+      if (!confirm('Are you sure you want to delete this student? This action cannot be undone.')) return;
+      let users = getUsers();
+      users = users.filter((u) => u.id !== studentId);
+      setUsers(users);
+
+      // Also remove attendance and results for that student
+      let attendance = getAttendance();
+      attendance = attendance.filter((a) => a.studentId !== studentId);
+      setAttendance(attendance);
+
+      let results = getResults();
+      results = results.filter((r) => r.studentId !== studentId);
+      setResults(results);
+
+      alert('Student deleted successfully.');
+      populateStudentsDropdowns();
+      updateStudentsListTable();
+      updateAttendanceRecordsTable();
+      updateResultsStudentCards();
+    }
+
+    // Update student batch select in attendance management when student selected
+    attendanceStudentSelect.addEventListener('change', () => {
+      const studentId = attendanceStudentSelect.value;
+      if (!studentId) {
+        attendanceBatchSelect.value = '';
+        attendanceBatchSelect.disabled = true;
+        attendanceStudentPhone.textContent = '';
+        return;
+      }
+      const student = getUsers().find((u) => u.id === studentId);
+      if (student && student.batchId) {
+        attendanceBatchSelect.value = student.batchId;
+        attendanceBatchSelect.disabled = false;
+      } else {
+        attendanceBatchSelect.value = '';
+        attendanceBatchSelect.disabled = false;
+      }
+      // Show phone number
+      attendanceStudentPhone.textContent = student && student.phone ? `Phone: ${student.phone}` : '';
+    });
+
+    // Attendance form submit with email sending simulation
+    attendanceForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const studentId = attendanceStudentSelect.value;
+      const batchId = attendanceBatchSelect.value;
+      const date = document.getElementById('attendance-date').value;
+      const status = attendanceForm['attendance-status'].value;
+
+      if (!studentId || !batchId || !date || !status) {
+        alert('Please fill all attendance fields.');
+        return;
+      }
+
+      // Save attendance record
+      const attendance = getAttendance();
+      attendance.push({ studentId, batchId, date, status });
+      setAttendance(attendance);
+
+      alert('Attendance uploaded successfully.');
+
+      // Send email notification to student if email exists
+      const studentEmail = getStudentEmailById(studentId);
+      if (studentEmail) {
+        // Compose email content
+        const dateObj = new Date(date);
+        const dateStr = dateObj.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+        const timeStr = new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+        const emailSubject = 'Attendance Notification';
+        const emailBody = `Dear Student,\n\nYour attendance has been marked as "${status}" on ${dateStr} at ${timeStr}.\n\nRegards,\nSchool Administration`;
+
+        // Send email via backend API
+        fetch('/send-attendance-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: studentEmail,
+            subject: emailSubject,
+            text: emailBody,
+          }),
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            alert('Attendance uploaded and email notification sent successfully.');
+          } else {
+            alert('Attendance uploaded but failed to send email notification.');
+          }
+        })
+        .catch(() => {
+          alert('Attendance uploaded but failed to send email notification.');
+        });
+      } else {
+        alert('Attendance uploaded successfully. Student email not found, so no email sent.');
+      }
+
+      // Reset form
+      attendanceForm.reset();
+      attendanceStudentSelect.value = '';
+      attendanceBatchSelect.value = '';
+      attendanceBatchSelect.disabled = true;
+      attendanceStudentPhone.textContent = '';
+
+      updateAttendanceRecordsTable();
+    });
+
+    // Exam schedule form submit with email notification to batch students
+    examScheduleForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('exam-name').value.trim();
+      const batchId = examBatchSelect.value;
+      const date = document.getElementById('exam-date').value;
+      const time = examTimeInput.value;
+
+      if (!name || !batchId || !date || !time) {
+        alert('Please fill all exam schedule fields.');
+        return;
+      }
+
+      const exams = getExams();
+      exams.push({ id: `exam-${Date.now()}`, name, batchId, date, time });
+      setExams(exams);
+
+      // Send email notification to batch students
+      const batchStudents = getUsers().filter(u => u.role === 'student' && u.batchId === batchId && u.email);
+      if (batchStudents.length === 0) {
+        alert('Exam added successfully. No students with email found in selected batch to send notifications.');
+        examScheduleForm.reset();
+        updateExamScheduleTable();
+        return;
+      }
+
+      // Compose email content
+      const dateObj = new Date(date);
+      const dateStr = dateObj.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+      const time12h = convertTo12Hour(time);
+      const emailSubject = 'New Exam Schedule Uploaded';
+      const emailBody = `Dear Student,\n\nA new exam schedule has been uploaded for your batch:\n\nExam: ${name}\nDate: ${dateStr}\nTime: ${time12h}\n\nPlease check the schedule and prepare accordingly.\n\nRegards,\nSchool Administration`;
+
+      // Send emails one by one (simulate backend API call)
+      Promise.all(batchStudents.map(student => {
+        return fetch('/send-exam-schedule-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: student.email,
+            subject: emailSubject,
+            text: emailBody,
+          }),
+        }).then(res => res.json());
+      })).then(results => {
+        const allSuccess = results.every(r => r.success);
+        if (allSuccess) {
+          alert('Exam added and email notifications sent successfully.');
+        } else {
+          alert('Exam added but some email notifications failed.');
+        }
+      }).catch(() => {
+        alert('Exam added but failed to send email notifications.');
+      }).finally(() => {
+        examScheduleForm.reset();
+        updateExamScheduleTable();
+      });
+    });
+
+    // Result form submit with email notification to selected student
+    resultForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const studentId = resultStudentSelect.value;
+      const title = resultTitleInput.value.trim();
+      const resultDate = resultDateInput.value;
+      if (!studentId) {
+        alert('Please select a student.');
+        return;
+      }
+      if (!title) {
+        alert('Please enter a result title.');
+        return;
+      }
+      if (!resultDate) {
+        alert('Please enter a result date.');
+        return;
+      }
+      const subjectRows = subjectsContainer.querySelectorAll('.subject-row');
+      if (subjectRows.length === 0) {
+        alert('Please add at least one subject.');
+        return;
+      }
+
+      const results = getResults();
+      let valid = true;
+
+      subjectRows.forEach((row) => {
+        const subjectNameInput = row.querySelector('.subject-name');
+        const marksObtainedInput = row.querySelector('.marks-obtained');
+        const totalMarksInput = row.querySelector('.total-marks');
+
+        const subject = subjectNameInput.value.trim();
+        const marksObtained = Number(marksObtainedInput.value);
+        const totalMarks = Number(totalMarksInput.value);
+
+        if (!subject || isNaN(marksObtained) || isNaN(totalMarks) || totalMarks <= 0) {
+          valid = false;
+          return;
+        }
+        if (marksObtained > totalMarks) {
+          valid = false;
+          return;
+        }
+      });
+
+      if (!valid) {
+        alert('Please fill all subject fields correctly and ensure marks obtained are not greater than total marks.');
+        return;
+      }
+
+      // Save all subjects results with title and date
+      subjectRows.forEach((row) => {
+        const subjectNameInput = row.querySelector('.subject-name');
+        const marksObtainedInput = row.querySelector('.marks-obtained');
+        const totalMarksInput = row.querySelector('.total-marks');
+
+        const subject = subjectNameInput.value.trim();
+        const marksObtained = Number(marksObtainedInput.value);
+        const totalMarks = Number(totalMarksInput.value);
+
+        results.push({ studentId, subject, marksObtained, totalMarks, title, resultDate, id: `res-${Date.now()}-${Math.random().toString(36).substr(2, 9)}` });
+      });
+
+      setResults(results);
+
+      alert('Results uploaded successfully.');
+
+      // Send email notification to student if email exists
+      const studentEmail = getStudentEmailById(studentId);
+      if (studentEmail) {
+        const dateObj = new Date(resultDate);
+        const dateStr = dateObj.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+        const emailSubject = 'New Result Uploaded';
+        const emailBody = `Dear Student,\n\nYour result titled "${title}" dated ${dateStr} has been uploaded.\nPlease check your results in the portal.\n\nRegards,\nSchool Administration`;
+
+        fetch('/send-result-upload-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: studentEmail,
+            subject: emailSubject,
+            text: emailBody,
+          }),
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            alert('Results uploaded and email notification sent successfully.');
+          } else {
+            alert('Results uploaded but failed to send email notification.');
+          }
+        })
+        .catch(() => {
+          alert('Results uploaded but failed to send email notification.');
+        });
+      } else {
+        alert('Results uploaded successfully. Student email not found, so no email sent.');
+      }
+
+      resultForm.reset();
+      resultStudentSelect.value = '';
+      resultTitleInput.value = '';
+      resultDateInput.value = '';
+      // Clear all but one subject row
+      while (subjectsContainer.children.length > 1) {
+        subjectsContainer.removeChild(subjectsContainer.lastChild);
+      }
+      // Clear inputs in the remaining row
+      const firstRow = subjectsContainer.querySelector('.subject-row');
+      firstRow.querySelector('.subject-name').value = '';
+      firstRow.querySelector('.marks-obtained').value = '';
+      firstRow.querySelector('.total-marks').value = '';
+
+      updateResultsStudentCards();
+    });
+
+    // Add subject button click
+    addSubjectBtn.addEventListener('click', () => {
+      const newRow = document.createElement('div');
+      newRow.className = 'subject-row grid grid-cols-12 gap-2 items-center';
+      newRow.innerHTML = `
+        <div class="col-span-5">
+          <label class="block font-medium text-indigo-800 mb-1">Subject Name</label>
+          <input type="text" class="subject-name w-full border border-indigo-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" required />
+        </div>
+        <div class="col-span-3">
+          <label class="block font-medium text-indigo-800 mb-1">Marks Obtained</label>
+          <input type="number" min="0" class="marks-obtained w-full border border-indigo-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" required />
+        </div>
+        <div class="col-span-3">
+          <label class="block font-medium text-indigo-800 mb-1">Total Marks</label>
+          <input type="number" min="1" class="total-marks w-full border border-indigo-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" required />
+        </div>
+        <div class="col-span-1 flex items-end">
+          <button type="button" class="remove-subject-btn bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md focus:outline-none focus:ring-2 focus:ring-red-400" title="Remove Subject">
+            <i class="fas fa-trash-alt"></i>
+          </button>
+        </div>
+      `;
+      subjectsContainer.appendChild(newRow);
+      attachRemoveSubjectListeners();
+    });
+
+    // Attach remove subject button listeners
+    function attachRemoveSubjectListeners() {
+      const removeBtns = subjectsContainer.querySelectorAll('.remove-subject-btn');
+      removeBtns.forEach((btn) => {
+        btn.onclick = (e) => {
+          if (subjectsContainer.children.length === 1) {
+            alert('At least one subject is required.');
+            return;
+          }
+          const row = e.target.closest('.subject-row');
+          if (row) {
+            subjectsContainer.removeChild(row);
+          }
+        };
+      });
+    }
+    attachRemoveSubjectListeners();
+
+    // Update results student cards in admin (grouped by student and result title)
+    function updateResultsStudentCards() {
+      const results = getResults();
+      resultsStudentCards.innerHTML = '';
+      if (results.length === 0) {
+        resultsStudentCards.innerHTML = '<p class="text-gray-600">No results available.</p>';
+        return;
+      }
+      // Group results by studentId and then by title+date
+      const grouped = {};
+      results.forEach(r => {
+        if (!grouped[r.studentId]) grouped[r.studentId] = {};
+        const key = `${r.title}||${r.resultDate}`;
+        if (!grouped[r.studentId][key]) grouped[r.studentId][key] = [];
+        grouped[r.studentId][key].push(r);
+      });
+
+      Object.entries(grouped).forEach(([studentId, resultsByTitle]) => {
+        const studentName = getStudentNameById(studentId);
+
+        Object.entries(resultsByTitle).forEach(([key, resArr]) => {
+          const [title, resultDate] = key.split('||');
+          const dateFormatted = formatDateAndDay(resultDate).date;
+
+          const card = document.createElement('div');
+          card.className = 'bg-indigo-50 rounded-md shadow-md p-6';
+
+          const header = document.createElement('div');
+          header.className = 'flex justify-between items-center mb-2';
+
+          const titleEl = document.createElement('h5');
+          titleEl.className = 'text-xl font-semibold text-indigo-700';
+          titleEl.textContent = `${studentName} - ${title} (${dateFormatted})`;
+          header.appendChild(titleEl);
+
+          const deleteBtn = document.createElement('button');
+          deleteBtn.className = 'bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md focus:outline-none focus:ring-2 focus:ring-red-400 flex items-center space-x-1';
+          deleteBtn.title = 'Delete this result set';
+          deleteBtn.innerHTML = `<i class="fas fa-trash-alt"></i><span>Delete</span>`;
+          deleteBtn.onclick = () => {
+            if (!confirm(`Are you sure you want to delete the result "${title}" for ${studentName}? This action cannot be undone.`)) return;
+            // Remove all results with this studentId and title and resultDate
+            let allResults = getResults();
+            allResults = allResults.filter(r => !(r.studentId === studentId && r.title === title && r.resultDate === resultDate));
+            setResults(allResults);
+            alert('Result deleted successfully.');
+            updateResultsStudentCards();
+            if (currentUser && currentUser.role === 'student' && currentUser.id === studentId) {
+              updateStudentResultsList();
+            }
+          };
+          header.appendChild(deleteBtn);
+
+          card.appendChild(header);
+
+          const tableWrapper = document.createElement('div');
+          tableWrapper.className = 'overflow-x-auto';
+
+          const table = document.createElement('table');
+          table.className = 'min-w-full bg-white rounded-md shadow-md';
+          table.setAttribute('role', 'table');
+          table.setAttribute('aria-label', `Results details for ${studentName} - ${title}`);
+
+          const thead = document.createElement('thead');
+          thead.className = 'bg-indigo-600 text-white';
+          thead.innerHTML = `
+            <tr>
+              <th class="py-2 px-4 text-left">Subject</th>
+              <th class="py-2 px-4 text-left">Marks Obtained</th>
+              <th class="py-2 px-4 text-left">Total Marks</th>
+            </tr>
+          `;
+          table.appendChild(thead);
+
+          const tbody = document.createElement('tbody');
+          tbody.className = 'divide-y divide-indigo-300';
+
+          resArr.forEach(res => {
+            const tr = document.createElement('tr');
+            tr.classList.add('hover:bg-indigo-100');
+            tr.innerHTML = `
+              <td class="py-2 px-4">${res.subject}</td>
+              <td class="py-2 px-4">${res.marksObtained}</td>
+              <td class="py-2 px-4">${res.totalMarks}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+
+          table.appendChild(tbody);
+          tableWrapper.appendChild(table);
+          card.appendChild(tableWrapper);
+
+          resultsStudentCards.appendChild(card);
+        });
+      });
+    }
+
+    // Update student attendance table with filters
+    function updateStudentAttendance() {
+      if (!currentUser) return;
+      const attendance = getAttendance().filter((a) => a.studentId === currentUser.id);
+
+      const selectedBatch = studentFilterBatchSelect.value;
+      const selectedMonth = studentFilterMonthInput.value;
+      const selectedDate = studentFilterDateInput.value;
+
+      let filteredAttendance = attendance;
+
+      if (selectedBatch) {
+        filteredAttendance = filteredAttendance.filter(a => a.batchId === selectedBatch);
+      }
+      if (selectedMonth) {
+        filteredAttendance = filteredAttendance.filter(a => a.date.startsWith(selectedMonth));
+      }
+      if (selectedDate) {
+        filteredAttendance = filteredAttendance.filter(a => a.date === selectedDate);
+      }
+
+      studentAttendanceRecords.innerHTML = '';
+      filteredAttendance.forEach((record) => {
+        const tr = document.createElement('tr');
+        tr.classList.add('hover:bg-indigo-100');
+        const { date, day } = formatDateAndDay(record.date);
+        tr.innerHTML = `
+          <td class="py-2 px-4">${date}</td>
+          <td class="py-2 px-4">${day}</td>
+          <td class="py-2 px-4">${record.status}</td>
+          <td class="py-2 px-4">${getBatchNameById(record.batchId)}</td>
+        `;
+        studentAttendanceRecords.appendChild(tr);
+      });
+    }
+
+    // Update student exam schedule table (only exams for student's batch)
+    function updateStudentExamSchedule() {
+      if (!currentUser) return;
+      const studentBatchId = getStudentBatchId(currentUser.id);
+      const exams = getExams().filter(e => e.batchId === studentBatchId);
+      studentExamSchedule.innerHTML = '';
+      exams.forEach((exam) => {
+        const tr = document.createElement('tr');
+        tr.classList.add('hover:bg-indigo-100');
+        const { date } = formatDateAndDay(exam.date);
+        const time12h = convertTo12Hour(exam.time);
+        tr.innerHTML = `
+          <td class="py-2 px-4">${exam.name}</td>
+          <td class="py-2 px-4">${date}</td>
+          <td class="py-2 px-4">${time12h}</td>
+        `;
+        studentExamSchedule.appendChild(tr);
+      });
+    }
+
+    // Update student results list with clickable titles
+    function updateStudentResultsList() {
+      if (!currentUser) return;
+      const results = getResults().filter(r => r.studentId === currentUser.id);
+      studentResultsList.innerHTML = '';
+      studentResultsDetails.classList.add('hidden');
+      if (results.length === 0) {
+        studentResultsList.innerHTML = '<p class="text-gray-600">No results available.</p>';
+        return;
+      }
+      // Group results by title and date
+      const grouped = {};
+      results.forEach(r => {
+        const key = `${r.title}||${r.resultDate}`;
+        if (!grouped[key]) grouped[key] = [];
+        grouped[key].push(r);
+      });
+
+      Object.entries(grouped).forEach(([key, resArr]) => {
+        const [title, resultDate] = key.split('||');
+        const dateFormatted = formatDateAndDay(resultDate).date;
+
+        const card = document.createElement('div');
+        card.className = 'bg-indigo-50 rounded-md shadow-md p-4 cursor-pointer hover:bg-indigo-100 transition';
+        card.setAttribute('tabindex', '0');
+        card.setAttribute('role', 'button');
+        card.setAttribute('aria-pressed', 'false');
+        card.setAttribute('aria-label', `View result: ${title} dated ${dateFormatted}`);
+
+        const titleEl = document.createElement('h5');
+        titleEl.className = 'text-lg font-semibold text-indigo-700';
+        titleEl.textContent = `${title} (${dateFormatted})`;
+        card.appendChild(titleEl);
+
+        card.onclick = () => {
+          showResultDetails(title, dateFormatted, resArr);
+        };
+        card.onkeypress = (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            showResultDetails(title, dateFormatted, resArr);
+          }
+        };
+
+        studentResultsList.appendChild(card);
+      });
+    }
+
+    // Show detailed result for a particular exam in student dashboard
+    function showResultDetails(title, dateFormatted, resultsArray) {
+      resultDetailsTitle.textContent = `${title} (${dateFormatted})`;
+      resultDetailsTbody.innerHTML = '';
+      resultsArray.forEach(res => {
+        const tr = document.createElement('tr');
+        tr.classList.add('hover:bg-indigo-100');
+        tr.innerHTML = `
+          <td class="py-2 px-4">${res.subject}</td>
+          <td class="py-2 px-4">${res.marksObtained}</td>
+          <td class="py-2 px-4">${res.totalMarks}</td>
+        `;
+        resultDetailsTbody.appendChild(tr);
+      });
+      studentResultsDetails.classList.remove('hidden');
+      studentResultsDetails.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Close detailed result view
+    closeResultDetailsBtn.addEventListener('click', () => {
+      studentResultsDetails.classList.add('hidden');
+      studentResultsList.scrollIntoView({ behavior: 'smooth' });
+    });
+
+    // Clear student name button
+    clearStudentNameBtn.addEventListener('click', () => {
+      studentNameInput.value = '';
+      studentNameInput.focus();
+    });
+
+    // Admin profile form submit with username and password update
+    adminProfileForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = adminNameInput.value.trim();
+      const email = adminEmailInput.value.trim();
+      const phone = adminPhoneInput.value.trim();
+      const newUsername = adminUsernameInput.value.trim();
+      const newPassword = adminPasswordInput.value;
+
+      if (!name || !email || !phone || !newUsername) {
+        alert('Please fill all profile fields including username.');
+        return;
+      }
+
+      const users = getUsers();
+      const adminIndex = users.findIndex((u) => u.id === currentUser.id);
+      if (adminIndex === -1) {
+        alert('Admin user not found.');
+        return;
+      }
+
+      // Check username uniqueness except current admin
+      if (users.some((u, idx) => u.username.toLowerCase() === newUsername.toLowerCase() && idx !== adminIndex)) {
+        alert('Username already exists. Please choose another.');
+        return;
+      }
+
+      users[adminIndex].name = name;
+      users[adminIndex].email = email;
+      users[adminIndex].phone = phone;
+      users[adminIndex].username = newUsername;
+      if (newPassword.trim() !== '') {
+        users[adminIndex].password = newPassword;
+      }
+      setUsers(users);
+      currentUser = users[adminIndex];
+      setLoggedInUser(currentUser);
+      adminUsernameDisplay.textContent = currentUser.name;
+      alert('Profile updated successfully.');
+    });
+
+    // Student profile form submit with username and password update
+    const studentProfileForm = document.getElementById('student-profile-form');
+    const studentNameInputProfile = document.getElementById('student-name-input');
+    const studentEmailInputProfile = document.getElementById('student-email-input');
+    const studentPhoneInputProfile = document.getElementById('student-phone-input');
+    const studentUsernameInputProfile = document.getElementById('student-username-input');
+    const studentPasswordInputProfile = document.getElementById('student-password-input');
+
+    studentProfileForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = studentNameInputProfile.value.trim();
+      const email = studentEmailInputProfile.value.trim();
+      const phone = studentPhoneInputProfile.value.trim();
+      const newUsername = studentUsernameInputProfile.value.trim();
+      const newPassword = studentPasswordInputProfile.value;
+
+      if (!name || !phone || !newUsername) {
+        alert('Please fill all required profile fields including username.');
+        return;
+      }
+
+      const users = getUsers();
+      const studentIndex = users.findIndex((u) => u.id === currentUser.id);
+      if (studentIndex === -1) {
+        alert('Student user not found.');
+        return;
+      }
+
+      // Check username uniqueness except current student
+      if (users.some((u, idx) => u.username.toLowerCase() === newUsername.toLowerCase() && idx !== studentIndex)) {
+        alert('Username already exists. Please choose another.');
+        return;
+      }
+
+      users[studentIndex].name = name;
+      users[studentIndex].email = email;
+      users[studentIndex].phone = phone;
+      users[studentIndex].username = newUsername;
+      if (newPassword.trim() !== '') {
+        users[studentIndex].password = newPassword;
+      }
+      setUsers(users);
+      currentUser = users[studentIndex];
+      setLoggedInUser(currentUser);
+      studentUsernameDisplay.textContent = currentUser.name;
+      studentNameDisplay.textContent = currentUser.name;
+      alert('Profile updated successfully.');
+    });
+
+    // Admin navigation buttons click
+    adminNavButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        adminNavButtons.forEach((b) => b.classList.remove('bg-indigo-100'));
+        btn.classList.add('bg-indigo-100');
+        const section = btn.getAttribute('data-section');
+        if (section === 'dashboard') {
+          showAdminSection('admin-dashboard-section');
+        } else if (section === 'profile') {
+          showAdminSection('admin-profile-section');
+          // Load profile data
+          adminNameInput.value = currentUser.name || '';
+          adminEmailInput.value = currentUser.email || '';
+          adminPhoneInput.value = currentUser.phone || '';
+          adminUsernameInput.value = currentUser.username || '';
+          adminPasswordInput.value = '';
+          updateStudentLoginCredentialsList();
+        }
+      });
+    });
+
+    // Open dashboard subsections buttons
+    openAttendanceBtn.addEventListener('click', () => {
+      showAdminSection('attendance-management-section');
+      updateAttendanceRecordsTable();
+      populateStudentsDropdowns();
+      populateBatchesDropdowns();
+      attendanceBatchSelect.disabled = true;
+      attendanceStudentPhone.textContent = '';
+    });
+    openExamScheduleBtn.addEventListener('click', () => {
+      showAdminSection('exam-schedule-section');
+      updateExamScheduleTable();
+      populateBatchesDropdowns();
+    });
+    openResultManagementBtn.addEventListener('click', () => {
+      showAdminSection('result-management-section');
+      populateStudentsDropdowns();
+      updateResultsStudentCards();
+    });
+    openBatchesManagementBtn.addEventListener('click', () => {
+      showAdminSection('batches-management-section');
+      updateBatchesList();
+      populateBatchesDropdowns();
+    });
+    openAddStudentBtn.addEventListener('click', () => {
+      showAdminSection('add-student-section');
+      populateBatchesDropdowns();
+      updateStudentsListTable();
+      addStudentForm.reset();
+      delete addStudentForm.dataset.editingId;
+      addStudentForm.querySelector('button[type="submit"]').textContent = 'Add Student';
+    });
+
+    // Admin back button click
+    adminBackBtn.addEventListener('click', () => {
+      showAdminSection('admin-dashboard-section');
+      adminNavButtons.forEach((b) => {
+        if (b.getAttribute('data-section') === 'dashboard') {
+          b.classList.add('bg-indigo-100');
+        } else {
+          b.classList.remove('bg-indigo-100');
+        }
+      });
+    });
+
+    // Sidebar toggle for mobile (admin)
+    sidebarToggleBtn.addEventListener('click', () => {
+      sidebarNav.classList.toggle('open');
+    });
+
+    // Admin logout
+    adminLogoutBtn.addEventListener('click', () => {
+      clearLoggedInUser();
+      currentUser = null;
+      adminDashboard.classList.add('hidden');
+      loginScreen.classList.remove('hidden');
+      loginForm.reset();
+      roleSelect.value = '';
+      if (sidebarNav.classList.contains('open')) sidebarNav.classList.remove('open');
+    });
+
+    // Student logout
+    studentLogoutBtn.addEventListener('click', () => {
+      clearLoggedInUser();
+      currentUser = null;
+      studentDashboard.classList.add('hidden');
+      loginScreen.classList.remove('hidden');
+      loginForm.reset();
+      roleSelect.value = '';
+      if (studentSidebar.classList.contains('open')) studentSidebar.classList.remove('open');
+    });
+
+    // Login form submit
+    loginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const role = roleSelect.value;
+      const username = usernameInput.value.trim();
+      const password = passwordInput.value;
+
+      if (!role || !username || !password) {
+        alert('Please fill all login fields.');
+        return;
+      }
+
+      const users = getUsers();
+      const user = users.find((u) => u.username === username && u.password === password && u.role === role);
+
+      if (!user) {
+        alert('Invalid credentials or role.');
+        return;
+      }
+
+      currentUser = user;
+      setLoggedInUser(user);
+
+      loginScreen.classList.add('hidden');
+
+      if (role === 'admin') {
+        adminDashboard.classList.remove('hidden');
+        adminUsernameDisplay.textContent = currentUser.name;
+        // Show dashboard section by default
+        showAdminSection('admin-dashboard-section');
+        // Highlight dashboard nav button
+        adminNavButtons.forEach((b) => {
+          if (b.getAttribute('data-section') === 'dashboard') {
+            b.classList.add('bg-indigo-100');
+          } else {
+            b.classList.remove('bg-indigo-100');
+          }
+        });
+      } else if (role === 'student') {
+        studentDashboard.classList.remove('hidden');
+        studentUsernameDisplay.textContent = currentUser.name;
+        studentNameDisplay.textContent = currentUser.name;
+        populateStudentFilterBatches();
+        updateStudentAttendance();
+        updateStudentExamSchedule();
+        updateStudentResultsList();
+        showStudentSection('student-dashboard-section');
+        // Highlight dashboard nav button
+        studentNavButtons.forEach((b) => {
+          if (b.getAttribute('data-section') === 'dashboard') {
+            b.classList.add('bg-indigo-100');
+          } else {
+            b.classList.remove('bg-indigo-100');
+          }
+        });
+      }
+      loginForm.reset();
+      roleSelect.value = '';
+    });
+
+    // Toggle student login credentials section in admin profile
+    const toggleCredentialsBtn = document.getElementById('toggle-credentials-btn');
+    const credentialsContainer = document.getElementById('student-login-credentials-container');
+    const toggleCredentialsIcon = document.getElementById('toggle-credentials-icon');
+
+    toggleCredentialsBtn.addEventListener('click', () => {
+      const isExpanded = toggleCredentialsBtn.getAttribute('aria-expanded') === 'true';
+      if (isExpanded) {
+        credentialsContainer.style.display = 'none';
+        toggleCredentialsBtn.setAttribute('aria-expanded', 'false');
+        toggleCredentialsIcon.classList.remove('fa-chevron-up');
+        toggleCredentialsIcon.classList.add('fa-chevron-down');
+      } else {
+        credentialsContainer.style.display = 'block';
+        toggleCredentialsBtn.setAttribute('aria-expanded', 'true');
+        toggleCredentialsIcon.classList.remove('fa-chevron-down');
+        toggleCredentialsIcon.classList.add('fa-chevron-up');
+      }
+    });
+
+    // Filters change events for attendance records (admin)
+    filterBatchSelect.addEventListener('change', () => {
+      const batchId = filterBatchSelect.value;
+      if (batchId) {
+        // Filter students dropdown to only students in selected batch
+        const students = getUsers().filter(u => u.role === 'student' && u.batchId === batchId);
+        filterStudentSelect.innerHTML = '<option value="">All Students</option>';
+        students.forEach(student => {
+          const option = document.createElement('option');
+          option.value = student.id;
+          option.textContent = student.name;
+          filterStudentSelect.appendChild(option);
+        });
+        filterStudentSelect.disabled = false;
+      } else {
+        // Show all students
+        const students = getUsers().filter(u => u.role === 'student');
+        filterStudentSelect.innerHTML = '<option value="">All Students</option>';
+        students.forEach(student => {
+          const option = document.createElement('option');
+          option.value = student.id;
+          option.textContent = student.name;
+          filterStudentSelect.appendChild(option);
+        });
+        filterStudentSelect.disabled = false;
+      }
+      updateAttendanceRecordsTable();
+    });
+
+    filterStudentSelect.addEventListener('change', () => {
+      updateAttendanceRecordsTable();
+    });
+
+    filterMonthInput.addEventListener('change', () => {
+      // Clear date filter if month filter is set
+      if (filterMonthInput.value) {
+        filterDateInput.value = '';
+      }
+      updateAttendanceRecordsTable();
+    });
+
+    filterDateInput.addEventListener('change', () => {
+      // Clear month filter if date filter is set
+      if (filterDateInput.value) {
+        filterMonthInput.value = '';
+      }
+      updateAttendanceRecordsTable();
+    });
+
+    // Populate batches dropdown for student attendance filter
+    function populateStudentFilterBatches() {
+      const batches = getBatches();
+      studentFilterBatchSelect.innerHTML = '<option value="">All Batches</option>';
+      batches.forEach(batch => {
+        const option = document.createElement('option');
+        option.value = batch.id;
+        option.textContent = batch.name;
+        studentFilterBatchSelect.appendChild(option);
+      });
+    }
+
+    // Student attendance filter change events
+    studentFilterBatchSelect.addEventListener('change', () => {
+      updateStudentAttendance();
+    });
+    studentFilterMonthInput.addEventListener('change', () => {
+      if (studentFilterMonthInput.value) {
+        studentFilterDateInput.value = '';
+      }
+      updateStudentAttendance();
+    });
+    studentFilterDateInput.addEventListener('change', () => {
+      if (studentFilterDateInput.value) {
+        studentFilterMonthInput.value = '';
+      }
+      updateStudentAttendance();
+    });
+
+    // Batch form submit (Add batch)
+    batchForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const batchName = batchNameInput.value.trim();
+      if (!batchName) {
+        alert('Please enter a batch name.');
+        return;
+      }
+      const batches = getBatches();
+      if (batches.some(b => b.name.toLowerCase() === batchName.toLowerCase())) {
+        alert('Batch name already exists.');
+        return;
+      }
+      batches.push({ id: `batch-${Date.now()}`, name: batchName });
+      setBatches(batches);
+      alert('Batch added successfully.');
+      batchForm.reset();
+      populateBatchesDropdowns();
+      updateBatchesList();
+    });
+
+    // Add student form submit (Add or update student) with email notification
+    addStudentForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = studentNameInput.value.trim();
+      const email = studentEmailInput.value.trim();
+      const phone = studentPhoneInput.value.trim();
+      const username = studentUsernameInput.value.trim();
+      const password = studentPasswordInput.value;
+      const batchId = studentBatchSelect.value;
+
+      if (!name || !phone || !username || !password || !batchId) {
+        alert('Please fill all required fields.');
+        return;
+      }
+
+      const users = getUsers();
+      const editingId = addStudentForm.dataset.editingId;
+
+      // Check username uniqueness
+      if (users.some(u => u.username.toLowerCase() === username.toLowerCase() && u.id !== editingId)) {
+        alert('Username already exists. Please choose another.');
+        return;
+      }
+
+      if (editingId) {
+        // Update existing student
+        const index = users.findIndex(u => u.id === editingId);
+        if (index !== -1) {
+          users[index].name = name;
+          users[index].email = email;
+          users[index].phone = phone;
+          users[index].username = username;
+          users[index].password = password;
+          users[index].batchId = batchId;
+          setUsers(users);
+          alert('Student updated successfully.');
+        }
+        delete addStudentForm.dataset.editingId;
+        addStudentForm.querySelector('button[type="submit"]').textContent = 'Add Student';
+        updateStudentsListTable();
+        populateStudentsDropdowns();
+        return;
+      } else {
+        // Add new student
+        const newStudent = {
+          id: `student-${Date.now()}`,
+          name,
+          email,
+          phone,
+          username,
+          password,
+          role: 'student',
+          batchId,
+        };
+        users.push(newStudent);
+        setUsers(users);
+        alert('Student added successfully.');
+
+        // Send email notification to the new student if email exists
+        if (email) {
+          const batchName = getBatchNameById(batchId);
+          const emailSubject = 'Welcome to Your Batch';
+          const emailBody = `Dear ${name},\n\nYou have been added to the batch "${batchName}".\nPlease login with your credentials to access the portal.\n\nRegards,\nSchool Administration`;
+
+          fetch('/send-new-student-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              to: email,
+              subject: emailSubject,
+              text: emailBody,
+            }),
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              alert('Student added and email notification sent successfully.');
+            } else {
+              alert('Student added but failed to send email notification.');
+            }
+          })
+          .catch(() => {
+            alert('Student added but failed to send email notification.');
+          });
+        }
+      }
+
+      addStudentForm.reset();
+      populateStudentsDropdowns();
+      updateStudentsListTable();
+    });
+
+    // Student sidebar navigation buttons click
+    studentNavButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        studentNavButtons.forEach((b) => b.classList.remove('bg-indigo-100'));
+        btn.classList.add('bg-indigo-100');
+        const section = btn.getAttribute('data-section');
+        if (section === 'dashboard') {
+          showStudentSection('student-dashboard-section');
+        } else if (section === 'profile') {
+          showStudentSection('student-profile-section');
+          // Load profile data
+          studentNameInputProfile.value = currentUser.name || '';
+          studentEmailInputProfile.value = currentUser.email || '';
+          studentPhoneInputProfile.value = currentUser.phone || '';
+          studentUsernameInputProfile.value = currentUser.username || '';
+          studentPasswordInputProfile.value = '';
+        }
+      });
+    });
+
+    // Student dashboard buttons click
+    const studentOpenAttendanceBtn = document.getElementById('student-open-attendance');
+    const studentOpenExamScheduleBtn = document.getElementById('student-open-exam-schedule');
+    const studentOpenResultsBtn = document.getElementById('student-open-results');
+
+    studentOpenAttendanceBtn.addEventListener('click', () => {
+      showStudentSection('student-attendance-section');
+      updateStudentAttendance();
+      populateStudentFilterBatches();
+    });
+    studentOpenExamScheduleBtn.addEventListener('click', () => {
+      showStudentSection('student-exam-schedule-section');
+      updateStudentExamSchedule();
+    });
+    studentOpenResultsBtn.addEventListener('click', () => {
+      showStudentSection('student-results-section');
+      updateStudentResultsList();
+    });
+
+    // Student back button click
+    studentBackBtn.addEventListener('click', () => {
+      showStudentSection('student-dashboard-section');
+      studentNavButtons.forEach((b) => {
+        if (b.getAttribute('data-section') === 'dashboard') {
+          b.classList.add('bg-indigo-100');
+        } else {
+          b.classList.remove('bg-indigo-100');
+        }
+      });
+    });
+
+    // Student sidebar toggle for mobile
+    studentSidebarToggleBtn.addEventListener('click', () => {
+      studentSidebar.classList.toggle('hidden');
+    });
+
+    // Initial UI setup on page load if user is logged in
+    if (currentUser) {
+      loginScreen.classList.add('hidden');
+      if (currentUser.role === 'admin') {
+        adminDashboard.classList.remove('hidden');
+        adminUsernameDisplay.textContent = currentUser.name;
+        showAdminSection('admin-dashboard-section');
+        adminNavButtons.forEach((b) => {
+          if (b.getAttribute('data-section') === 'dashboard') {
+            b.classList.add('bg-indigo-100');
+          } else {
+            b.classList.remove('bg-indigo-100');
+          }
+        });
+      } else if (currentUser.role === 'student') {
+        studentDashboard.classList.remove('hidden');
+        studentUsernameDisplay.textContent = currentUser.name;
+        studentNameDisplay.textContent = currentUser.name;
+        populateStudentFilterBatches();
+        updateStudentAttendance();
+        updateStudentExamSchedule();
+        updateStudentResultsList();
+        showStudentSection('student-dashboard-section');
+        studentNavButtons.forEach((b) => {
+          if (b.getAttribute('data-section') === 'dashboard') {
+            b.classList.add('bg-indigo-100');
+          } else {
+            b.classList.remove('bg-indigo-100');
+          }
+        });
+      }
+    }
+  </script>
+</body>
+</html>
